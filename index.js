@@ -1,7 +1,6 @@
-const { addonBuilder } = require("stremio-addon-sdk");
-const http = require("http");
+const { getRouter } = require("stremio-addon-sdk");
 
-// --- TA CONFIGURATION ---
+// 1. Ton Manifest
 const manifest = {
     id: "org.moncatalogue.gemini",
     version: "1.0.0",
@@ -18,10 +17,10 @@ const manifest = {
     ]
 };
 
-const builder = new addonBuilder(manifest);
-
-// --- TES DONNÉES (JSON de Gemini) ---
+// 2. Tes données (JSON de Gemini)
 const DATA = [
+    {
+  "metas": [
     {
       "id": "tt5804038",
       "type": "movie",
@@ -162,48 +161,29 @@ const DATA = [
       "poster": null,
       "description": "🍿 SYNOPSIS : Certes ancien, mais une critique visionnaire de la spéculation financière qui résonne encore.\n\n🤖 L'AVIS DE GEMINI : Une fresque muette éblouissante, dont la dénonciation de la voracité capitaliste et du pouvoir de l'argent n'a pas pris une seule ride."
     }
-    // Ajoute les autres films ici à la suite
-];
-const builder = new addonBuilder(manifest);
-
-// --- TES DONNÉES (JSON de Gemini) ---
-const DATA = [
-    {
-        id: "tt0111161",
-        type: "movie",
-        name: "Les Évadés",
-        poster: "https://image.tmdb.org/t/p/w500/q6y0Go1tsYTVHTgnPROUYW1CgS8.jpg",
-        description: "🍿 SYNOPSIS : L'histoire d'un homme... \n\n🤖 GEMINI : Un chef-d'œuvre."
-    }
+  ]
+}
 ];
 
-// --- LES HANDLERS ---
-builder.defineCatalogHandler(({ type, id }) => {
-    if (id === "gemini_movies") {
-        return Promise.resolve({ metas: DATA });
-    }
-    return Promise.resolve({ metas: [] });
-});
-
-builder.defineMetaHandler(({ type, id }) => {
-    const meta = DATA.find(m => m.id === id);
-    return Promise.resolve({ meta: meta || null });
-});
-
-// --- CRÉATION DU SERVEUR POUR VERCEL ---
-const addonInterface = builder.getInterface();
-
-const server = http.createServer((req, res) => {
-    addonInterface.execute(req.url, (err, response) => {
-        if (err) {
-            res.writeHead(500);
-            res.end(JSON.stringify(err));
-            return;
+// 3. Création du Router
+const addonRouter = getRouter({
+    manifest: manifest,
+    getMeta: ({ type, id }) => {
+        const meta = DATA.find(m => m.id === id);
+        return Promise.resolve({ meta: meta || null });
+    },
+    getCatalog: ({ type, id }) => {
+        if (id === "gemini_movies") {
+            return Promise.resolve({ metas: DATA });
         }
-        res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-        res.end(JSON.stringify(response));
-    });
+        return Promise.resolve({ metas: [] });
+    }
 });
 
-// Important pour Vercel : on exporte le serveur
-module.exports = server;
+// 4. Export pour Vercel
+module.exports = (req, res) => {
+    addonRouter(req, res, () => {
+        res.statusCode = 404;
+        res.end();
+    });
+};
