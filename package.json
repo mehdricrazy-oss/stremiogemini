@@ -1,0 +1,10 @@
+{
+  "name": "mon-catalogue-stremio",
+  "version": "1.0.0",
+  "dependencies": {
+    "stremio-addon-sdk": "^3.5.1"
+  },
+  "scripts": {
+    "start": "stremio-addon-sdk"
+  }
+}
