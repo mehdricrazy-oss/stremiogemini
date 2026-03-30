@@ -1,10 +1,12 @@
 {
-  "name": "mon-catalogue-stremio",
+  "name": "stremiogemini",
   "version": "1.0.0",
+  "description": "Mon catalogue Gemini",
+  "main": "index.js",
   "dependencies": {
-    "stremio-addon-sdk": "^3.5.1"
+    "stremio-addon-sdk": "latest"
   },
   "scripts": {
-    "start": "stremio-addon-sdk"
+    "start": "node index.js"
   }
 }
